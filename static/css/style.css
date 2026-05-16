@@ -1,0 +1,103 @@
+:root {
+    --grid-size: 15;
+    --cell-size: 38px;
+    --bg-dark: #121212;         /* Fondo principal oscuro */
+    --card-bg: #1e1e1e;         /* Fondo de tarjetas */
+    --primary-neon: #00d4ff;    /* Cyan para selección */
+    --success-green: #00ff88;   /* Verde neón para aciertos */
+    --text-main: #e0e0e0;       /* Letras claras */
+    --danger-red: #ff4b2b;
+    --border-color: #333333;
+}
+
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    background: var(--bg-dark); 
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    color: var(--text-main); 
+}
+
+header { 
+    background: #1a1a1a; 
+    width: 100%; 
+    padding: 20px 0;
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; align-items: center;
+}
+
+.stats-bar { 
+    background: #252525; 
+    padding: 10px 30px; 
+    border-radius: 50px; 
+    margin-top: 15px;
+    border: 1px solid var(--primary-neon);
+    color: var(--primary-neon);
+    font-family: 'Courier New', monospace; /* Toque técnico */
+}
+
+/* --- GRILLA OSCURA --- */
+.sopa-grid { 
+    display: grid; 
+    grid-template-columns: repeat(var(--grid-size), var(--cell-size)); 
+    grid-template-rows: repeat(var(--grid-size), var(--cell-size));
+    border: 5px solid #000;
+    background: #222;
+    gap: 1px;
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.1); /* Brillo suave */
+}
+
+.letra { 
+    width: var(--cell-size); height: var(--cell-size); 
+    background: #1a1a1a; /* Fondo de cada letra */
+    color: #888;         /* Letras opacas por defecto */
+    display: flex; align-items: center; justify-content: center; 
+    font-weight: bold; cursor: pointer; transition: 0.2s;
+    border: 0.1px solid #222;
+}
+
+.letra:hover { background: #333; color: #fff; }
+
+.letra.selected { 
+    background: var(--primary-neon) !important; 
+    color: #000 !important; 
+    transform: scale(1.1);
+    box-shadow: 0 0 15px var(--primary-neon);
+}
+
+.letra.found { 
+    background: var(--success-green) !important; 
+    color: #000 !important; 
+    opacity: 1;
+}
+
+/* --- PISTAS --- */
+.pista-item { 
+    background: var(--card-bg); 
+    color: #aaa;
+    border-left: 4px solid var(--border-color);
+    padding: 15px; margin-bottom: 8px; border-radius: 4px;
+}
+
+.pista-item.completed { 
+    border-left-color: var(--success-green); 
+    color: var(--success-green);
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+/* --- BOTONES --- */
+.btn { 
+    background: #333; color: white; border: none; padding: 12px 20px;
+    border-radius: 8px; cursor: pointer; font-weight: bold;
+    transition: 0.3s; box-shadow: 0 4px 0 #000;
+}
+
+.btn:hover { background: var(--primary-neon); color: #000; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; }
+
+.btn-salir { background: #442222; }
+.btn-salir:hover { background: var(--danger-red); }

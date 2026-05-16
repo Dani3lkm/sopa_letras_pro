@@ -1,0 +1,282 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>CHEMICAL_CORE</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --neon: #00d4ff;
+            --surface: #111116;
+            --danger: #ff4b2b;
+            --success: #00ff88;
+        }
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(to bottom, #00d4ff11, transparent);
+            width: 100%;
+        }
+        .glitch-title {
+            font-size: 3rem;
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 10px;
+            margin: 0;
+        }
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            width: 90%;
+            padding: 20px;
+        }
+
+        /* ── CARD BASE ── */
+        .tema-card {
+            background: var(--surface);
+            border: 1px solid #2d2d35;
+            padding: 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: white;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .tema-card::before {
+            content: "ENTRY_POINT";
+            position: absolute;
+            top: 10px; right: 10px;
+            font-size: 10px;
+            color: var(--neon);
+            opacity: 0.5;
+        }
+
+        /* ── CARD DESBLOQUEADA ── */
+        .tema-card.unlocked:hover {
+            border-color: var(--neon);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        .tema-card.unlocked h2 { color: var(--neon); }
+
+        /* ── CARD BLOQUEADA ── */
+        .tema-card.locked {
+            cursor: not-allowed;
+            border-color: #2a1010;
+            background: #0d0808;
+            opacity: 0.8;
+        }
+        .tema-card.locked::before { color: var(--danger); opacity: 0.4; }
+        .tema-card.locked:hover {
+            border-color: var(--danger);
+            box-shadow: 0 0 20px rgba(255, 75, 43, 0.15);
+            transform: translateY(-3px);
+        }
+        .tema-card.locked h2 { color: #6b2a2a; }
+        .tema-card.locked p  { color: #3a1a1a; opacity: 1; }
+
+        /* ── ÍCONO CANDADO ── */
+        .lock-icon {
+            position: absolute;
+            bottom: 20px; right: 20px;
+            font-size: 1.5rem;
+            opacity: 0.2;
+        }
+
+        .tema-card h2 { margin: 0; letter-spacing: 2px; }
+        .tema-card p  { opacity: 0.6; font-size: 14px; margin-top: 10px; }
+
+        /* ── ESTADO ── */
+        .estado-label {
+            margin-top: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #aaa;
+        }
+
+        /* ── MODAL BLOQUEADO ── */
+        #modal-bloqueado {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+        #modal-bloqueado.visible { display: flex; }
+
+        .modal-lock-content {
+            background: #12080a;
+            border: 2px solid var(--danger);
+            border-radius: 20px;
+            padding: 48px 52px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 60px rgba(255,75,43,0.2);
+            animation: aparece 0.35s ease;
+        }
+        @keyframes aparece {
+            from { transform: scale(0.85); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
+        }
+        .modal-lock-content .icono { font-size: 3.5rem; margin-bottom: 16px; }
+        .modal-lock-content h2 {
+            color: var(--danger);
+            letter-spacing: 3px;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .modal-lock-content p {
+            color: #888;
+            font-size: 0.88rem;
+            line-height: 1.7;
+            margin-bottom: 8px;
+        }
+        .requisito-box {
+            background: #1a0a0a;
+            border: 1px solid #3a1515;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 18px 0;
+            font-size: 0.78rem;
+            color: #ff8c6b;
+            letter-spacing: 1px;
+        }
+        .btn-cerrar {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 11px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .btn-cerrar:hover { background: var(--danger); color: #000; }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1 class="glitch-title">CHEMICAL_CORE</h1>
+    <p style="color: var(--neon)">PROTOCOLOS DE BÚSQUEDA DE ELEMENTOS V.1.0</p>
+</div>
+
+<div class="grid-menu">
+    {% for nivel in niveles %}
+    <div class="tema-card" id="card-{{ nivel.numero }}"
+         onclick="intentarEntrar({{ nivel.numero }}, '{% url 'jugar' nivel.id %}')">
+
+        <h2>{{ nivel.titulo }}</h2>
+        <p>Nivel {{ nivel.numero }} - Matriz {{ nivel.dimension }}x{{ nivel.dimension }}</p>
+
+        <div class="estado-label">
+            ESTADO: <span id="estado-{{ nivel.numero }}">...</span>
+        </div>
+
+        {% if nivel.numero > 1 %}
+        <div class="lock-icon" id="lock-{{ nivel.numero }}">🔒</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- MODAL DE BLOQUEO -->
+<div id="modal-bloqueado" onclick="cerrarModal()">
+    <div class="modal-lock-content" onclick="event.stopPropagation()">
+        <div class="icono">🔒</div>
+        <h2>ACCESO DENEGADO</h2>
+        <p>Este protocolo está encriptado. Debes completar el nivel anterior para desbloquear el acceso.</p>
+        <div class="requisito-box" id="texto-requisito">
+            REQUISITO: Completa el Nivel X primero
+        </div>
+        <button class="btn-cerrar" onclick="cerrarModal()">ENTENDIDO</button>
+    </div>
+</div>
+
+<script>
+    // ── HELPERS LOCALSTORAGE ──
+    function estaDesbloqueado(num) {
+        if (num === 1) return true; // Nivel 1 siempre libre
+        return localStorage.getItem('chemical_core_nivel_' + num) === 'unlocked';
+    }
+    function estaCompletado(num) {
+        return localStorage.getItem('chemical_core_nivel_' + num + '_completado') === 'true';
+    }
+
+    // ── PINTAR CADA CARD SEGÚN ESTADO ──
+    function actualizarCards() {
+        {% for nivel in niveles %}
+        (function() {
+            const num      = {{ nivel.numero }};
+            const card     = document.getElementById('card-' + num);
+            const estado   = document.getElementById('estado-' + num);
+            const lockIcon = document.getElementById('lock-' + num);
+
+            if (estaDesbloqueado(num)) {
+                card.classList.add('unlocked');
+                card.classList.remove('locked');
+                if (lockIcon) lockIcon.style.display = 'none';
+
+                if (estaCompletado(num)) {
+                    estado.style.color = '#00ff88';
+                    estado.textContent = 'PROTOCOLO_COMPLETADO ✓';
+                } else {
+                    estado.style.color = 'var(--neon)';
+                    estado.textContent = 'SISTEMA_ACTIVO';
+                }
+            } else {
+                card.classList.add('locked');
+                card.classList.remove('unlocked');
+                estado.style.color = '#ff4b2b';
+                estado.textContent = 'SISTEMA_BLOQUEADO';
+            }
+        })();
+        {% endfor %}
+    }
+
+    // ── CLICK EN CARD ──
+    function intentarEntrar(num, url) {
+        if (estaDesbloqueado(num)) {
+            window.location.href = url;
+        } else {
+            document.getElementById('texto-requisito').textContent =
+                '🔐 REQUISITO: Completa el Nivel ' + (num - 1) + ' primero';
+            document.getElementById('modal-bloqueado').classList.add('visible');
+        }
+    }
+
+    // ── CERRAR MODAL ──
+    function cerrarModal() {
+        document.getElementById('modal-bloqueado').classList.remove('visible');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+
+    // Arrancar
+    actualizarCards();
+</script>
+</body>
+</html>
+

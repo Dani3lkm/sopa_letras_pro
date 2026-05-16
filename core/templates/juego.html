@@ -3,598 +3,755 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CHEMICAL_CORE - {{ nivel.titulo }}</title>
     <style>
         :root {
             --grid-size: {{ nivel.dimension }};
-            --cell-size: 38px;
-            --bg-dark: #0a0a0c;
+            --cell-size: clamp(28px, calc(92vw / var(--grid-size)), 42px);
+            --bg-dark: #080810;
             --primary-neon: #00d4ff;
             --success-green: #00ff88;
             --danger-red: #ff4b2b;
             --warning-yellow: #f1c40f;
-            --card-bg: #16161a;
+            --card-bg: #13131a;
+            --border-subtle: #1e1e28;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
             background: var(--bg-dark);
             color: #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            overflow-x: hidden;
+            font-family: 'Courier New', monospace;
         }
 
-        /* ── HEADER ── */
+        /* ── HEADER COMPACTO ── */
         header {
-            background: #111116;
-            width: 100%;
-            padding: 20px 0 14px;
-            border-bottom: 2px solid #2d2d35;
-            text-align: center;
-        }
-        header h1 {
-            margin: 0;
-            letter-spacing: 4px;
-            color: var(--primary-neon);
-            font-size: 1.5rem;
+            background: #0d0d14;
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 12px 16px 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        /* ── BADGE DE DIFICULTAD ── */
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .game-title {
+            font-size: 0.65rem;
+            letter-spacing: 3px;
+            color: var(--primary-neon);
+            font-weight: 900;
+        }
+
         .diff-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            background: #1a1a22;
-            border: 1px solid #2d2d35;
+            gap: 5px;
+            background: #1a1a24;
+            border: 1px solid var(--border-subtle);
             border-radius: 20px;
-            padding: 5px 14px;
-            font-size: 0.7rem;
+            padding: 3px 10px;
+            font-size: 0.55rem;
             letter-spacing: 1.5px;
-            color: #777;
-            margin-top: 8px;
+            color: #666;
         }
-        .diff-badge .dots { display: flex; gap: 4px; }
-        .diff-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #2d2d35; }
-        .diff-badge .dot.active { background: var(--primary-neon); box-shadow: 0 0 5px var(--primary-neon); }
+        .diff-badge .dots { display: flex; gap: 3px; }
+        .diff-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: #222; }
+        .diff-badge .dot.active { background: var(--primary-neon); }
 
-        /* ── STATS BAR ── */
-        .stats-bar {
-            background: #1a1a20;
-            padding: 10px 40px;
-            border-radius: 50px;
-            border: 1px solid var(--primary-neon);
-            color: var(--primary-neon);
-            display: flex;
-            gap: 30px;
-            margin-top: 14px;
-            font-size: 0.9rem;
-        }
-
-        /* ── PENALIZACIÓN FLASH ── */
-        .penalizacion-flash {
-            position: fixed;
-            top: 80px;
-            right: 30px;
-            background: var(--danger-red);
-            color: #000;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 800;
-            font-size: 0.85rem;
+        .nivel-titulo {
+            font-size: 0.8rem;
+            color: #aaa;
             letter-spacing: 1px;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: opacity 0.2s, transform 0.2s;
-            z-index: 500;
-            pointer-events: none;
-        }
-        .penalizacion-flash.visible {
-            opacity: 1;
-            transform: translateY(0);
+            margin: 0 0 8px;
         }
 
-        /* ── LAYOUT ── */
-        .container {
+        /* ── STATS COMPACTAS ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+
+        .stat-chip {
+            background: #1a1a24;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 5px 8px;
+            text-align: center;
+        }
+        .stat-chip .label {
+            font-size: 0.45rem;
+            color: #555;
+            letter-spacing: 1.5px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .stat-chip .value {
+            font-size: 0.85rem;
+            font-weight: 900;
+            color: var(--primary-neon);
+        }
+        .stat-chip .value.energy { color: var(--warning-yellow); }
+        .stat-chip .value.found-count { color: var(--success-green); }
+
+        /* ── TABS ── */
+        .tabs {
             display: flex;
-            gap: 40px;
-            padding: 40px;
-            justify-content: center;
-            flex-wrap: wrap;
-            align-items: flex-start;
+            background: #0d0d14;
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 108px;
+            z-index: 99;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: var(--primary-neon);
+            border-bottom-color: var(--primary-neon);
         }
 
-        /* ── GRID SOPA ── */
+        /* ── PANEL GRID ── */
+        .panel { display: none; padding: 16px; }
+        .panel.active { display: block; }
+
+        .grid-wrapper {
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .sopa-grid {
             display: grid;
             grid-template-columns: repeat(var(--grid-size), var(--cell-size));
             background: #000;
             gap: 2px;
-            padding: 5px;
+            padding: 4px;
             border-radius: 8px;
-            border: 2px solid #2d2d35;
+            border: 1px solid var(--border-subtle);
             user-select: none;
             touch-action: none;
+            flex-shrink: 0;
         }
+
         .letra {
             width: var(--cell-size);
             height: var(--cell-size);
             background: var(--card-bg);
-            color: #fff;
+            color: #ccc;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
             cursor: pointer;
-            transition: 0.1s;
-            border-radius: 3px;
-            font-size: 1.1rem;
+            border-radius: 2px;
+            font-size: clamp(0.7rem, calc(3vw), 1rem);
+            transition: background 0.08s, color 0.08s;
         }
         .letra.selected {
             background: var(--primary-neon) !important;
             color: #000 !important;
-            box-shadow: 0 0 15px var(--primary-neon);
         }
         .letra.found {
-            background: var(--success-green) !important;
-            color: #000 !important;
+            background: #003322 !important;
+            color: var(--success-green) !important;
         }
 
-        /* ── PISTAS ── */
-        .pistas { width: 540px; }
+        /* ── PANEL PISTAS ── */
+        .pistas-header {
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: var(--primary-neon);
+            margin-bottom: 12px;
+        }
+
         .pista-item {
             background: var(--card-bg);
-            border-left: 5px solid #2d2d35;
-            padding: 16px 20px;
-            margin-bottom: 12px;
-            border-radius: 8px;
+            border-left: 3px solid var(--border-subtle);
+            border-radius: 0 8px 8px 0;
+            padding: 12px 14px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 25px;
+            gap: 12px;
+            transition: opacity 0.3s;
         }
         .pista-item span {
-            font-size: 0.95rem;
-            line-height: 1.4;
-            color: #d1d1d6;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: #c0c0c8;
             flex: 1;
+            font-family: 'Segoe UI', sans-serif;
         }
         .pista-item.completed {
             border-left-color: var(--success-green);
-            opacity: 0.4;
-            text-decoration: line-through;
-            color: var(--success-green);
+            opacity: 0.35;
         }
+        .pista-item.completed span { text-decoration: line-through; color: var(--success-green); }
 
-        /* ── BOTONES ── */
-        .btn {
-            background: #1f1f25;
-            color: white;
-            border: 1px solid #3d3d45;
-            padding: 10px 18px;
+        .btn-reveal {
+            background: #1a1a24;
+            color: #aaa;
+            border: 1px solid #2d2d3d;
+            padding: 8px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-        }
-        .btn:hover:not(:disabled) {
-            background: var(--primary-neon);
-            color: #000;
-            border-color: var(--primary-neon);
-            box-shadow: 0 0 10px rgba(0,212,255,0.3);
-        }
-        .btn:disabled {
-            opacity: 0.2;
-            cursor: not-allowed;
-            border-color: #222;
-        }
-
-        /* ── ALERTA DE COSTO DE REVELAR ── */
-        .reveal-cost-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
+            font-family: 'Courier New', monospace;
             letter-spacing: 1px;
-            color: #ff8c6b;
-            display: block;
-            text-align: center;
-            margin-top: 4px;
+            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            min-width: 64px;
+            -webkit-tap-highlight-color: transparent;
         }
-        .btn-container { display: flex; flex-direction: column; }
+        .btn-reveal .icon { font-size: 1rem; }
+        .btn-reveal .cost { color: var(--danger-red); font-size: 0.5rem; }
+        .btn-reveal:disabled { opacity: 0.2; cursor: not-allowed; }
+        .btn-reveal:active:not(:disabled) { transform: scale(0.95); }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1a1a24;
+            border: 1px solid var(--danger-red);
+            color: var(--danger-red);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 500;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast.success {
+            border-color: var(--success-green);
+            color: var(--success-green);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
 
         /* ── MODAL VICTORIA ── */
-        #modal-victoria {
+        .modal-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 100;
-            align-items: center;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 200;
+            align-items: flex-end;
             justify-content: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
         }
-        .modal-content {
-            background: #1a1a20;
-            padding: 50px;
-            border-radius: 24px;
+        .modal-overlay.show { display: flex; }
+
+        .modal-sheet {
+            background: #13131a;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 24px 24px 0 0;
+            padding: 32px 24px 40px;
+            border-top: 2px solid var(--success-green);
+        }
+
+        .modal-sheet h2 {
+            color: var(--success-green);
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            margin: 0 0 20px;
             text-align: center;
-            border: 2px solid var(--success-green);
-            box-shadow: 0 0 60px rgba(0,255,136,0.15);
-            max-width: 500px;
-            width: 90%;
         }
-        .modal-content h1 { color: var(--success-green); margin-bottom: 10px; }
-        .modal-content .stats-finales {
-            background: #111116;
+
+        .stats-finales {
+            background: #0d0d14;
             border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
+            padding: 16px;
+            margin-bottom: 20px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            font-size: 0.85rem;
-            color: #888;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #666;
             letter-spacing: 1px;
         }
-        .modal-content .stats-finales span { color: white; font-weight: 700; }
+        .stat-row span { color: #fff; font-weight: 700; }
 
-        /* ── MODAL ACCESO DENEGADO ── */
-        #modal-bloqueado {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 999;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(12px);
-        }
-        #modal-bloqueado.visible { display: flex; }
-        .modal-bloqueado-content {
-            background: #12080a;
-            border: 2px solid var(--danger-red);
-            border-radius: 20px;
-            padding: 48px 52px;
-            text-align: center;
-            max-width: 420px;
-            width: 90%;
-            box-shadow: 0 0 60px rgba(255,75,43,0.3);
-        }
-        .modal-bloqueado-content .lock-big { font-size: 4rem; margin-bottom: 20px; }
-        .modal-bloqueado-content h2 {
-            color: var(--danger-red);
-            letter-spacing: 3px;
-            font-size: 1.2rem;
-            margin-bottom: 14px;
-        }
-        .modal-bloqueado-content p { color: #888; line-height: 1.7; margin-bottom: 20px; }
-        .btn-volver {
-            background: var(--danger-red);
+        .btn-continuar {
+            width: 100%;
+            background: var(--success-green);
             color: #000;
             border: none;
-            padding: 14px 32px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 800;
+            padding: 16px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 0.8rem;
             letter-spacing: 2px;
-            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            text-align: center;
             text-decoration: none;
-            display: inline-block;
+            display: block;
         }
-        .btn-volver:hover { filter: brightness(1.2); }
+
+        /* ── MODAL BLOQUEADO ── */
+        .modal-block-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.97);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+        }
+        .modal-block-overlay.show { display: flex; }
+
+        .modal-block-card {
+            background: #12080a;
+            border: 1px solid var(--danger-red);
+            border-radius: 20px;
+            padding: 40px 28px;
+            text-align: center;
+            width: 100%;
+            max-width: 360px;
+        }
+        .modal-block-card .lock { font-size: 3.5rem; margin-bottom: 16px; }
+        .modal-block-card h2 {
+            color: var(--danger-red);
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+        .modal-block-card p { color: #777; font-size: 0.8rem; line-height: 1.6; margin-bottom: 24px; font-family: 'Segoe UI', sans-serif; }
+        .btn-volver {
+            display: inline-block;
+            background: var(--danger-red);
+            color: #000;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-decoration: none;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ── HINT FLECHA SWIPE ── */
+        .swipe-hint {
+            text-align: center;
+            font-size: 0.55rem;
+            color: #333;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        /* ── WORD FOUND BANNER ── */
+        .word-found-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: var(--success-green);
+            color: #000;
+            font-weight: 900;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            padding: 16px 28px;
+            border-radius: 12px;
+            opacity: 0;
+            transition: opacity 0.15s, transform 0.15s;
+            z-index: 400;
+            pointer-events: none;
+            font-family: 'Courier New', monospace;
+        }
+        .word-found-banner.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
     </style>
 </head>
 <body>
 
-<!-- MODAL: Nivel bloqueado (protección al entrar por URL directo) -->
-<div id="modal-bloqueado" class="{% if nivel.numero == 1 %}{% else %}{% endif %}">
-    <div class="modal-bloqueado-content">
-        <div class="lock-big">🔒</div>
+<!-- MODAL BLOQUEADO -->
+<div class="modal-block-overlay {% if nivel.numero == 1 %}{% else %}{% endif %}" id="modal-bloqueado">
+    <div class="modal-block-card">
+        <div class="lock">🔒</div>
         <h2>ACCESO DENEGADO</h2>
-        <p>Este protocolo está encriptado. Completa el nivel anterior para desbloquear el acceso a este sistema.</p>
-        <a href="{% url 'home' %}" class="btn-volver">← VOLVER AL INICIO</a>
+        <p>Este protocolo está encriptado. Completa el nivel anterior para desbloquear el acceso.</p>
+        <a href="{% url 'home' %}" class="btn-volver">← VOLVER</a>
     </div>
 </div>
 
-<!-- FLASH DE PENALIZACIÓN -->
-<div class="penalizacion-flash" id="pen-flash"></div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
+<!-- WORD FOUND BANNER -->
+<div class="word-found-banner" id="word-banner"></div>
+
+<!-- HEADER -->
 <header>
-    <h1>{{ nivel.titulo }}</h1>
-
-    <!-- Badge dificultad -->
-    <div class="diff-badge">
-        DIFICULTAD
-        <div class="dots" id="diff-dots"></div>
-        <span id="diff-name">CARGANDO</span>
+    <div class="header-top">
+        <div>
+            <div class="game-title">⚗ CHEMICAL_CORE</div>
+            <div class="nivel-titulo">{{ nivel.titulo }}</div>
+        </div>
+        <div class="diff-badge">
+            <div class="dots" id="diff-dots"></div>
+            <span id="diff-name">—</span>
+        </div>
     </div>
-
-    <div style="font-size: 24px; margin-top: 10px;">
-        CORE_ENERGY: <span id="score-display" style="color: var(--warning-yellow)">1000</span>
-    </div>
-    <div class="stats-bar">
-        <span>TIME: <span id="timer">00:00</span></span>
-        <span>FOUND: <span id="counter">0</span>/{{ desafios|length }}</span>
-        <span>COSTO PISTA: <span id="costo-pista" style="color: var(--danger-red)">-200</span></span>
+    <div class="stats-row">
+        <div class="stat-chip">
+            <span class="label">ENERGY</span>
+            <span class="value energy" id="score-display">1000</span>
+        </div>
+        <div class="stat-chip">
+            <span class="label">TIME</span>
+            <span class="value" id="timer">00:00</span>
+        </div>
+        <div class="stat-chip">
+            <span class="label">FOUND</span>
+            <span class="value found-count"><span id="counter">0</span>/{{ desafios|length }}</span>
+        </div>
     </div>
 </header>
 
-<div class="container">
-    <div class="sopa-grid" id="grid"
-         onmousedown="startSelection()"
-         onmouseup="endSelection()"
-         onmouseleave="endSelection()">
-        {% for fila in sopa %}
-            {% for letra in fila %}
-                <div class="letra"
-                     onmouseover="handleMouseOver(this)"
-                     onmousedown="handleMouseDown(this)">{{ letra }}</div>
-            {% endfor %}
-        {% endfor %}
-    </div>
+<!-- TABS -->
+<div class="tabs">
+    <button class="tab-btn active" id="tab-grid" onclick="switchTab('grid')">CUADRÍCULA</button>
+    <button class="tab-btn" id="tab-pistas" onclick="switchTab('pistas')">
+        PISTAS ({{ desafios|length }})
+    </button>
+</div>
 
-    <div class="pistas">
-        <h3 style="color: var(--primary-neon); margin-top: 0; margin-bottom: 20px; letter-spacing: 1px;">
-            SINTETIZAR ELEMENTOS:
-        </h3>
-        {% for d in desafios %}
-        <div class="pista-item" id="pista-{{ d.palabra|upper }}">
-            <span>{{ d.pregunta }}</span>
-            <div class="btn-container">
-                <button class="btn" onclick="revelar('{{ d.palabra|upper }}')">👁️ REVELAR</button>
-                <span class="reveal-cost-label" id="costo-label-{{ d.palabra|upper }}"></span>
-            </div>
+<!-- PANEL: GRID -->
+<div class="panel active" id="panel-grid">
+    <div class="grid-wrapper">
+        <div class="sopa-grid" id="grid">
+            {% for fila in sopa %}
+                {% for letra in fila %}
+                    <div class="letra">{{ letra }}</div>
+                {% endfor %}
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
+    <div class="swipe-hint">ARRASTRA PARA SELECCIONAR · HORIZONTAL · VERTICAL · DIAGONAL</div>
+</div>
+
+<!-- PANEL: PISTAS -->
+<div class="panel" id="panel-pistas">
+    <div class="pistas-header">SINTETIZAR ELEMENTOS:</div>
+    {% for d in desafios %}
+    <div class="pista-item" id="pista-{{ d.palabra|upper }}">
+        <span>{{ d.pregunta }}</span>
+        <button class="btn-reveal" onclick="revelar('{{ d.palabra|upper }}')" id="btn-{{ d.palabra|upper }}">
+            <span class="icon">👁</span>
+            <span>REVELAR</span>
+            <span class="cost" id="costo-label-{{ d.palabra|upper }}"></span>
+        </button>
+    </div>
+    {% endfor %}
 </div>
 
 <!-- MODAL VICTORIA -->
-<div id="modal-victoria">
-    <div class="modal-content">
-        <h1>✅ NIVEL COMPLETADO</h1>
+<div class="modal-overlay" id="modal-victoria">
+    <div class="modal-sheet">
+        <h2>✓ NIVEL COMPLETADO</h2>
         <div class="stats-finales">
-            <div>ENERGÍA FINAL: <span id="final-score"></span></div>
-            <div>TIEMPO: <span id="final-time"></span></div>
-            <div>ESTADO: <span id="unlock-status" style="color: var(--success-green)"></span></div>
+            <div class="stat-row">ENERGÍA FINAL <span id="final-score"></span></div>
+            <div class="stat-row">TIEMPO <span id="final-time"></span></div>
+            <div class="stat-row">PISTAS USADAS <span id="final-pistas"></span></div>
+            <div class="stat-row">ESTADO <span id="unlock-status" style="color: var(--success-green)"></span></div>
         </div>
-        <a href="{% url 'home' %}" class="btn" style="padding: 15px 30px; font-size: 1rem;" onclick="guardarProgreso()">
-            VOLVER AL INICIO
+        <a href="{% url 'home' %}" class="btn-continuar" onclick="guardarProgreso()">
+            VOLVER AL INICIO →
         </a>
     </div>
 </div>
 
 <script>
-    // ── CONFIGURACIÓN DEL NIVEL ──
-    const NIVEL_NUMERO = {{ nivel.numero }};
-    const GRID_SIZE    = {{ nivel.dimension }};
+    const NIVEL_NUMERO     = {{ nivel.numero }};
+    const GRID_SIZE        = {{ nivel.dimension }};
     const palabrasObjetivo = [{% for d in desafios %}"{{ d.palabra|upper }}",{% endfor %}];
 
-    // ── SISTEMA DE DIFICULTAD PROGRESIVA ──
-    // Nivel 1: fácil | Nivel 2: medio | Nivel 3: difícil
     const DIFICULTAD = {
-        1: {
-            nombre: 'BASICO',
-            scoreInicial: 1000,
-            penalizacionTiempo: 1,   // puntos perdidos cada 2 seg
-            intervaloPen: 2,          // cada X segundos pierde puntos
-            costoRevelar: 200,
-            scoreAlEncontrar: 150,
-            maxRevelaciones: 99,      // sin límite efectivo
-        },
-        2: {
-            nombre: 'INTERMEDIO',
-            scoreInicial: 1200,
-            penalizacionTiempo: 2,
-            intervaloPen: 2,
-            costoRevelar: 300,
-            scoreAlEncontrar: 200,
-            maxRevelaciones: 3,
-        },
-        3: {
-            nombre: 'AVANZADO',
-            scoreInicial: 1500,
-            penalizacionTiempo: 4,
-            intervaloPen: 1,          // cada 1 segundo pierde puntos
-            costoRevelar: 400,
-            scoreAlEncontrar: 250,
-            maxRevelaciones: 1,       // solo 1 pista disponible
-        }
+        1: { nombre:'BASICO',       scoreInicial:1000, penalizacionTiempo:1, intervaloPen:2, costoRevelar:200, scoreAlEncontrar:150, maxRevelaciones:99 },
+        2: { nombre:'INTERMEDIO',   scoreInicial:1200, penalizacionTiempo:2, intervaloPen:2, costoRevelar:300, scoreAlEncontrar:200, maxRevelaciones:3  },
+        3: { nombre:'AVANZADO',     scoreInicial:1500, penalizacionTiempo:4, intervaloPen:1, costoRevelar:400, scoreAlEncontrar:250, maxRevelaciones:1  }
     };
 
     const cfg = DIFICULTAD[NIVEL_NUMERO] || DIFICULTAD[1];
 
-    let score = cfg.scoreInicial;
+    let score       = cfg.scoreInicial;
     let encontradas = 0;
-    let revelaciones = 0;
-    let segundos = 0;
+    let revelaciones= 0;
+    let segundos    = 0;
     let timerInterval = null;
-    let isDragging = false;
-    let startCell = null;
+
+    // Touch / mouse state
+    let isDragging  = false;
+    let startCell   = null;
     let seleccionActual = [];
 
-    // ── VERIFICAR ACCESO (PROTECCIÓN EXTRA POR URL) ──
+    // ── VERIFICAR ACCESO ──
     function verificarAcceso() {
-        if (NIVEL_NUMERO === 1) return; // Nivel 1 siempre accesible
+        if (NIVEL_NUMERO === 1) return;
         const clave = 'chemical_core_nivel_' + NIVEL_NUMERO;
         if (localStorage.getItem(clave) !== 'unlocked') {
-            document.getElementById('modal-bloqueado').classList.add('visible');
+            document.getElementById('modal-bloqueado').classList.add('show');
         }
     }
 
-    // ── INICIALIZAR UI DE DIFICULTAD ──
-    function inicializarDificultad() {
-        // Actualizar score inicial
-        document.getElementById('score-display').innerText = score;
+    // ── INIT UI ──
+    function inicializarUI() {
+        document.getElementById('score-display').textContent = score;
 
-        // Badge de dificultad (puntos)
-        const dotsContainer = document.getElementById('diff-dots');
-        dotsContainer.innerHTML = '';
+        const dotsEl = document.getElementById('diff-dots');
         for (let i = 1; i <= 3; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'dot' + (i <= NIVEL_NUMERO ? ' active' : '');
-            dotsContainer.appendChild(dot);
+            const d = document.createElement('div');
+            d.className = 'dot' + (i <= NIVEL_NUMERO ? ' active' : '');
+            dotsEl.appendChild(d);
         }
         document.getElementById('diff-name').textContent = cfg.nombre;
 
-        // Costo de revelar
-        document.getElementById('costo-pista').textContent = '-' + cfg.costoRevelar;
-
-        // Labels en cada botón de revelar
         {% for d in desafios %}
-        (function() {
-            const label = document.getElementById('costo-label-{{ d.palabra|upper }}');
-            if (label) label.textContent = '-' + cfg.costoRevelar + ' pts';
+        (function(){
+            const el = document.getElementById('costo-label-{{ d.palabra|upper }}');
+            if (el) el.textContent = '-' + cfg.costoRevelar;
         })();
         {% endfor %}
 
-        // Deshabilitar botones si el nivel 3 solo permite 1 revelación
         if (cfg.maxRevelaciones === 0) {
-            document.querySelectorAll('.pista-item .btn').forEach(b => b.disabled = true);
+            document.querySelectorAll('.btn-reveal').forEach(b => b.disabled = true);
         }
     }
 
-    // ── GUARDAR PROGRESO AL GANAR ──
+    // ── TABS ──
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('panel-' + tab).classList.add('active');
+    }
+
+    // ── TOAST ──
+    let toastTimer = null;
+    function showToast(msg, type) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.className = 'toast' + (type === 'success' ? ' success' : '') + ' show';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+    }
+
+    // ── WORD FOUND BANNER ──
+    let bannerTimer = null;
+    function showBanner(word) {
+        const el = document.getElementById('word-banner');
+        el.textContent = '✓ ' + word;
+        el.classList.add('show');
+        clearTimeout(bannerTimer);
+        bannerTimer = setTimeout(() => el.classList.remove('show'), 900);
+    }
+
+    // ── GUARDAR PROGRESO ──
     function guardarProgreso() {
-        // Marcar nivel actual como completado
         localStorage.setItem('chemical_core_nivel_' + NIVEL_NUMERO + '_completado', 'true');
-        // Desbloquear el siguiente
-        const siguiente = NIVEL_NUMERO + 1;
-        localStorage.setItem('chemical_core_nivel_' + siguiente, 'unlocked');
+        localStorage.setItem('chemical_core_nivel_' + (NIVEL_NUMERO + 1), 'unlocked');
     }
 
-    // ── GRID: LÓGICA DE SELECCIÓN ──
-    function startSelection() { isDragging = true; }
-
+    // ── GRID: coordenadas ──
     function getCoords(el) {
-        const index = Array.from(el.parentNode.children).indexOf(el);
-        return { x: index % GRID_SIZE, y: Math.floor(index / GRID_SIZE) };
+        const idx = Array.from(el.parentNode.children).indexOf(el);
+        return { x: idx % GRID_SIZE, y: Math.floor(idx / GRID_SIZE) };
     }
 
-    function handleMouseDown(el) {
-        if (!timerInterval) iniciarTimer();
-        isDragging = true;
-        startCell = el;
-        seleccionActual = [el];
-        el.classList.add('selected');
-    }
-
-    function handleMouseOver(el) {
-        if (!isDragging || !startCell) return;
-        document.querySelectorAll('.letra.selected').forEach(c => c.classList.remove('selected'));
-
-        const s = getCoords(startCell), c = getCoords(el);
+    function calcularLinea(start, end) {
+        const s = getCoords(start), c = getCoords(end);
         const dX = c.x - s.x, dY = c.y - s.y;
         let stX = 0, stY = 0;
 
-        if (s.y === c.y) stX = dX > 0 ? 1 : -1;
-        else if (s.x === c.x) stY = dY > 0 ? 1 : -1;
-        else if (Math.abs(dX) === Math.abs(dY)) {
+        if (s.y === c.y && dX !== 0) stX = dX > 0 ? 1 : -1;
+        else if (s.x === c.x && dY !== 0) stY = dY > 0 ? 1 : -1;
+        else if (Math.abs(dX) === Math.abs(dY) && dX !== 0) {
             stX = dX > 0 ? 1 : -1;
             stY = dY > 0 ? 1 : -1;
-        }
+        } else return null;
 
-        if (stX !== 0 || stY !== 0) {
-            seleccionActual = [];
-            const pasos = Math.max(Math.abs(dX), Math.abs(dY));
-            for (let i = 0; i <= pasos; i++) {
-                const idx = (s.y + i * stY) * GRID_SIZE + (s.x + i * stX);
-                const cell = document.getElementById('grid').children[idx];
-                if (cell) { cell.classList.add('selected'); seleccionActual.push(cell); }
-            }
+        const cells = [];
+        const pasos = Math.max(Math.abs(dX), Math.abs(dY));
+        for (let i = 0; i <= pasos; i++) {
+            const idx = (s.y + i * stY) * GRID_SIZE + (s.x + i * stX);
+            const cell = document.getElementById('grid').children[idx];
+            if (cell) cells.push(cell);
+        }
+        return cells;
+    }
+
+    function updateSeleccion(endCell) {
+        document.querySelectorAll('.letra.selected').forEach(c => c.classList.remove('selected'));
+        if (!startCell) return;
+        const line = calcularLinea(startCell, endCell);
+        if (line) {
+            seleccionActual = line;
+            line.forEach(c => c.classList.add('selected'));
         }
     }
 
-    function endSelection() {
+    function commitSelection() {
         isDragging = false;
-        if (seleccionActual.length > 0) {
-            let word = seleccionActual.map(e => e.innerText).join('');
-            let rev  = word.split('').reverse().join('');
-            if (palabrasObjetivo.includes(word) || palabrasObjetivo.includes(rev)) {
-                let pCorrecta = palabrasObjetivo.includes(word) ? word : rev;
-                seleccionActual.forEach(e => e.classList.add('found'));
-                marcarEncontrada(pCorrecta);
+        if (seleccionActual.length > 1) {
+            const word = seleccionActual.map(e => e.textContent).join('');
+            const rev  = word.split('').reverse().join('');
+            const match = palabrasObjetivo.includes(word) ? word : (palabrasObjetivo.includes(rev) ? rev : null);
+            if (match) {
+                seleccionActual.forEach(e => { e.classList.remove('selected'); e.classList.add('found'); });
+                marcarEncontrada(match);
+                seleccionActual = [];
+                return;
             }
         }
         document.querySelectorAll('.letra.selected').forEach(c => c.classList.remove('selected'));
         seleccionActual = [];
     }
 
+    // ── MOUSE EVENTS ──
+    const grid = document.getElementById('grid');
+
+    grid.addEventListener('mousedown', e => {
+        const cell = e.target.closest('.letra');
+        if (!cell) return;
+        if (!timerInterval) iniciarTimer();
+        isDragging = true;
+        startCell = cell;
+        seleccionActual = [cell];
+        cell.classList.add('selected');
+    });
+
+    grid.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const cell = e.target.closest('.letra');
+        if (cell) updateSeleccion(cell);
+    });
+
+    grid.addEventListener('mouseup', () => { if (isDragging) commitSelection(); });
+    grid.addEventListener('mouseleave', () => { if (isDragging) commitSelection(); });
+
+    // ── TOUCH EVENTS ──
+    grid.addEventListener('touchstart', e => {
+        const touch = e.touches[0];
+        const cell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.letra');
+        if (!cell) return;
+        if (!timerInterval) iniciarTimer();
+        isDragging = true;
+        startCell = cell;
+        seleccionActual = [cell];
+        cell.classList.add('selected');
+        e.preventDefault();
+    }, { passive: false });
+
+    grid.addEventListener('touchmove', e => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const cell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.letra');
+        if (cell) updateSeleccion(cell);
+        e.preventDefault();
+    }, { passive: false });
+
+    grid.addEventListener('touchend', () => { if (isDragging) commitSelection(); }, { passive: true });
+
+    // ── MARCAR ENCONTRADA ──
     function marcarEncontrada(p) {
         const item = document.getElementById('pista-' + p);
         if (item && !item.classList.contains('completed')) {
             item.classList.add('completed');
+            const btn = document.getElementById('btn-' + p);
+            if (btn) btn.disabled = true;
             encontradas++;
             score += cfg.scoreAlEncontrar;
-            document.getElementById('counter').innerText = encontradas;
-            document.getElementById('score-display').innerText = score;
+            document.getElementById('counter').textContent = encontradas;
+            document.getElementById('score-display').textContent = score;
+            showBanner(p);
             if (encontradas === palabrasObjetivo.length) ganar();
         }
     }
 
-    // ── FLASH DE PENALIZACIÓN ──
-    function mostrarFlash(msg) {
-        const flash = document.getElementById('pen-flash');
-        flash.textContent = msg;
-        flash.classList.add('visible');
-        setTimeout(() => flash.classList.remove('visible'), 1200);
-    }
-
-    // ── REVELAR PISTA ──
+    // ── REVELAR ──
     function revelar(p) {
-        // Verificar límite de revelaciones por dificultad
-        if (revelaciones >= cfg.maxRevelaciones) {
-            mostrarFlash('⛔ LÍMITE DE PISTAS ALCANZADO');
-            return;
-        }
-        if (score < cfg.costoRevelar) {
-            mostrarFlash('❌ CORE_ENERGY INSUFICIENTE');
-            return;
-        }
+        if (revelaciones >= cfg.maxRevelaciones) { showToast('⛔ LÍMITE ALCANZADO'); return; }
+        if (score < cfg.costoRevelar) { showToast('❌ ENERGY INSUFICIENTE'); return; }
 
         revelaciones++;
         score = Math.max(0, score - cfg.costoRevelar);
-        document.getElementById('score-display').innerText = score;
+        document.getElementById('score-display').textContent = score;
+        showToast('−' + cfg.costoRevelar + ' ENERGY');
 
-        mostrarFlash('−' + cfg.costoRevelar + ' ENERGY');
-        alert('🔍 PISTA DE DATOS RECUPERADA\n\nLocaliza la secuencia: ' + p +
-              '\n\n[Pistas usadas: ' + revelaciones + '/' +
-              (cfg.maxRevelaciones >= 99 ? '∞' : cfg.maxRevelaciones) + ']');
+        setTimeout(() => {
+            alert('🔍 SECUENCIA: ' + p + '\n[Pistas: ' + revelaciones + '/' +
+                  (cfg.maxRevelaciones >= 99 ? '∞' : cfg.maxRevelaciones) + ']');
+        }, 200);
 
-        const btn = document.querySelector(`#pista-${p} .btn`);
+        const btn = document.getElementById('btn-' + p);
         if (btn) btn.disabled = true;
 
-        // Si se agotaron revelaciones, deshabilitar todos los botones restantes
         if (revelaciones >= cfg.maxRevelaciones) {
-            document.querySelectorAll('.pista-item .btn:not(:disabled)').forEach(b => {
-                b.disabled = true;
-            });
-            mostrarFlash('⛔ NO MÁS PISTAS');
+            document.querySelectorAll('.btn-reveal:not(:disabled)').forEach(b => b.disabled = true);
         }
+
+        // Cambiar a tab de grid para buscar
+        switchTab('grid');
     }
 
-    // ── TIMER CON PENALIZACIÓN DINÁMICA ──
+    // ── TIMER ──
     function iniciarTimer() {
         timerInterval = setInterval(() => {
             segundos++;
-
-            // Penalización según dificultad
             if (segundos % cfg.intervaloPen === 0) {
                 score = Math.max(0, score - cfg.penalizacionTiempo);
-                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-display').textContent = score;
             }
-
-            let m = Math.floor(segundos / 60);
-            let s = segundos % 60;
-            document.getElementById('timer').innerText =
-                `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            const m = Math.floor(segundos / 60);
+            const s = segundos % 60;
+            document.getElementById('timer').textContent =
+                `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         }, 1000);
     }
 
@@ -605,23 +762,20 @@
 
         const m = Math.floor(segundos / 60);
         const s = segundos % 60;
-        const timeStr = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        const timeStr = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const sig = NIVEL_NUMERO + 1;
 
-        document.getElementById('final-score').textContent = score + ' pts';
-        document.getElementById('final-time').textContent  = timeStr;
-
-        const siguienteNum = NIVEL_NUMERO + 1;
+        document.getElementById('final-score').textContent  = score + ' pts';
+        document.getElementById('final-time').textContent   = timeStr;
+        document.getElementById('final-pistas').textContent = revelaciones + '/' + (cfg.maxRevelaciones >= 99 ? '∞' : cfg.maxRevelaciones);
         document.getElementById('unlock-status').textContent =
-            siguienteNum <= 3
-                ? '🔓 NIVEL ' + siguienteNum + ' DESBLOQUEADO'
-                : '🏆 ¡TODOS LOS PROTOCOLOS COMPLETADOS!';
+            sig <= 3 ? '🔓 NIVEL ' + sig + ' DESBLOQUEADO' : '🏆 TODOS COMPLETADOS';
 
-        document.getElementById('modal-victoria').style.display = 'flex';
+        document.getElementById('modal-victoria').classList.add('show');
     }
 
-    // ── INICIAR ──
     verificarAcceso();
-    inicializarDificultad();
+    inicializarUI();
 </script>
 </body>
 </html>

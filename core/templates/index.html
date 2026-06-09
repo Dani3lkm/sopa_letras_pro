@@ -187,7 +187,7 @@
 <div class="grid-menu">
     {% for nivel in niveles %}
     <div class="tema-card" id="card-{{ nivel.numero }}"
-         onclick="intentarEntrar({{ nivel.numero }}, '{% url 'jugar' nivel.id %}')">
+         onclick="intentarEntrar({{ nivel.numero }}, '{% url 'jugar' nivel.id_nivel %}')">
 
         <h2>{{ nivel.titulo }}</h2>
         <p>Nivel {{ nivel.numero }} - Matriz {{ nivel.dimension }}x{{ nivel.dimension }}</p>
@@ -197,13 +197,12 @@
         </div>
 
         {% if nivel.numero > 1 %}
-        <div class="lock-icon" id="lock-{{ nivel.numero }}">🔒</div>
+        <div class="lock-icon" id="lock-{{ nivel.numero }}"></div>
         {% endif %}
     </div>
     {% endfor %}
 </div>
 
-<!-- MODAL DE BLOQUEO -->
 <div id="modal-bloqueado" onclick="cerrarModal()">
     <div class="modal-lock-content" onclick="event.stopPropagation()">
         <div class="icono">🔒</div>
@@ -220,8 +219,15 @@
     // ── HELPERS LOCALSTORAGE ──
     function estaDesbloqueado(num) {
         if (num === 1) return true; // Nivel 1 siempre libre
+        
+        // Cadena lógica automática: si el nivel anterior está completado, este se desbloquea solo
+        if (estaCompletado(num - 1)) {
+            localStorage.setItem('chemical_core_nivel_' + num, 'unlocked');
+            return true;
+        }
         return localStorage.getItem('chemical_core_nivel_' + num) === 'unlocked';
     }
+    
     function estaCompletado(num) {
         return localStorage.getItem('chemical_core_nivel_' + num + '_completado') === 'true';
     }
@@ -263,7 +269,7 @@
             window.location.href = url;
         } else {
             document.getElementById('texto-requisito').textContent =
-                '🔐 REQUISITO: Completa el Nivel ' + (num - 1) + ' primero';
+                ' REQUISITO: Completa el Nivel ' + (num - 1) + ' primero';
             document.getElementById('modal-bloqueado').classList.add('visible');
         }
     }
@@ -279,4 +285,3 @@
 </script>
 </body>
 </html>
-

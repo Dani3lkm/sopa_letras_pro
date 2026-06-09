@@ -16,11 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from core.views import home, jugar 
+from core import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', home, name='home'),
-    path('jugar/<int:nivel_id>/', jugar, name='jugar'), 
+    path('', views.home, name='home'),
+    path('juego/<int:nivel_id>/', views.jugar, name='jugar'),
+    path('admin-nosql/', views.admin_nosql, name='admin_nosql'),
 ]
-

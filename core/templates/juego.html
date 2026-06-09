@@ -302,7 +302,7 @@
 <header>
     <div class="header-top">
         <div>
-            <div class="game-title">CHEMICAL_CORE</div>
+            <div class="game-title">SOPA DE LETRAS</div>
             <div class="nivel-titulo">{{ nivel.titulo }}</div>
         </div>
         <div class="diff-badge">
@@ -351,7 +351,7 @@
     <div class="pistas-label">SINTETIZAR ELEMENTOS:</div>
     {% for d in desafios %}
     <div class="pista-item" id="pista-{{ d.palabra|upper }}">
-        <span class="ptexto">{{ d.pregunta }}</span>
+        <span class="ptexto">{{ d.pista }}</span> 
         <button class="btn-reveal" onclick="revelar('{{ d.palabra|upper }}')" id="btn-{{ d.palabra|upper }}">
             REVELAR
             <span class="rcost" id="costo-label-{{ d.palabra|upper }}"></span>
@@ -359,7 +359,6 @@
     </div>
     {% endfor %}
 </div>
-
 <!-- MODAL: VICTORIA -->
 <div class="modal-overlay" id="modal-victoria">
     <div class="sheet-victoria">
@@ -397,14 +396,34 @@
     }
 
     // ACCESO
+    // ACCESO PROTOCOLO — BLINDADO
     function verificarAcceso() {
-        if (NIVEL_NUMERO === 1) return;
-        if (localStorage.getItem('chemical_core_nivel_' + NIVEL_NUMERO) !== 'unlocked') {
-            document.getElementById('modal-intro').classList.remove('show');
-            document.getElementById('modal-bloqueado').classList.add('show');
-        }
+       if (NIVEL_NUMERO === 1) return true; // Nivel 1 siempre disponible
+    
+       if (localStorage.getItem('chemical_core_nivel_' + NIVEL_NUMERO) !== 'unlocked') {
+        document.getElementById('modal-intro').classList.remove('show');
+        document.getElementById('modal-bloqueado').classList.add('show');
+        
+        if (timerInterval) clearInterval(timerInterval);
+        return false; 
     }
-
+    return true;
+}// ACCESO PROTOCOLO — BLINDADO
+function verificarAcceso() {
+    if (NIVEL_NUMERO === 1) return true; // Nivel 1 siempre disponible
+    
+    // Si no está explícitamente marcado como unlocked en el almacenamiento local
+    if (localStorage.getItem('chemical_core_nivel_' + NIVEL_NUMERO) !== 'unlocked') {
+        // Apagamos la intro y encendemos el bloqueo absoluto
+        document.getElementById('modal-intro').classList.remove('show');
+        document.getElementById('modal-bloqueado').classList.add('show');
+        
+        // Frenamos el reloj para que no gaste recursos de fondo
+        if (timerInterval) clearInterval(timerInterval);
+        return false; 
+    }
+    return true;
+}
     // INIT
     function inicializarUI() {
         document.getElementById('score-display').textContent = score;
@@ -584,9 +603,9 @@
             sig <= 3 ? 'NIVEL ' + sig + ' DESBLOQUEADO' : 'TODOS LOS PROTOCOLOS COMPLETADOS';
         document.getElementById('modal-victoria').classList.add('show');
     }
-
-    verificarAcceso();
+  if (verificarAcceso()){
     inicializarUI();
+}
 </script>
 </body>
 </html>
